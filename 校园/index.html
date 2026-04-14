@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>lycyouci4-校园</title>
+    <style>
+        * { box-sizing: border-box; user-select: none; }
+        body {
+            margin: 0; min-height: 100vh;
+            background: #0c1710;
+            display: flex; justify-content: center; align-items: center;
+            font-family: 'Segoe UI', 'Noto Serif SC', serif;
+            padding: 16px;
+        }
+        .game-container {
+            max-width: 1100px; width: 100%;
+            background: #1a2a1e;
+            border-radius: 36px;
+            box-shadow: 0 20px 30px rgba(0,0,0,0.8), inset 0 0 0 1px #4a6b4a;
+            padding: 20px; border-bottom: 8px solid #0f1a0e;
+        }
+        .header {
+            display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+            background: #132013; padding: 10px 20px; border-radius: 60px;
+            margin-bottom: 20px; color: #dcedc4; text-shadow: 2px 2px 0 #0a130a;
+            border: 1px solid #5b7e5b; box-shadow: inset 0 2px 6px #0a100a, 0 4px 0 #0c1a0c;
+        }
+        .time-box {
+            background: #0e1a0e; padding: 6px 18px; border-radius: 40px;
+            font-size: 1.8rem; letter-spacing: 3px; font-family: monospace;
+            color: #f3f7e0; box-shadow: inset 0 -2px 0 #2f6b2f, 0 3px 0 #0a120a;
+        }
+        .date-box {
+            background: #1e3a1e; padding: 6px 18px; border-radius: 40px;
+            font-size: 1.2rem; font-weight: bold; color: #d4e6bc;
+        }
+        .period-badge {
+            background: #263f26; padding: 8px 20px; border-radius: 40px;
+            font-weight: bold; display: flex; align-items: center; gap: 8px;
+        }
+        .pass-badge {
+            background: #a76f1e; color: #ffefc0; padding: 8px 20px;
+            border-radius: 40px; font-weight: bold; box-shadow: inset 0 1px 4px #eebb55, 0 3px 0 #5e3e10;
+        }
+        .hunger-bar {
+            background: #4d2e1b; padding: 6px 16px; border-radius: 30px;
+            color: #ffd78a; font-weight: bold; display: flex; align-items: center; gap: 6px;
+        }
+        .main-row { display: flex; gap: 20px; }
+        .scene-panel {
+            flex: 3; background: #1b2a1b; border-radius: 24px;
+            padding: 20px; box-shadow: inset 0 0 20px #0a130a, 0 6px 0 #0e1a0e;
+            border: 1px solid #5e8460; min-height: 380px;
+        }
+        .scene-title {
+            font-size: 1.8rem; font-weight: bold; color: #e6ecc2;
+            border-bottom: 2px dashed #6f966f; padding-bottom: 10px; margin-bottom: 16px;
+        }
+        .scene-desc { font-size: 1.05rem; line-height: 1.6; color: #cfdec1; margin-bottom: 20px; }
+        .object-list { display: flex; flex-wrap: wrap; gap: 10px; margin: 15px 0; }
+        .obj-btn {
+            background: #2f4a2f; border: none; color: #f0efd0;
+            padding: 8px 16px; border-radius: 30px; font-weight: bold;
+            box-shadow: 0 3px 0 #1a2a1a; cursor: pointer;
+            border-left: 3px solid #b8a86b; transition: 0.05s;
+        }
+        .obj-btn:hover { background: #456645; transform: translateY(-2px); }
+        .obj-btn:disabled { opacity: 0.5; pointer-events: none; }
+        .action-panel {
+            flex: 1.8; background: #172617; border-radius: 24px;
+            padding: 16px; box-shadow: inset 0 0 10px #0a120a, 0 4px 0 #0e1a0e;
+            border: 1px solid #4e6e4e; display: flex; flex-direction: column;
+        }
+        .action-title { font-size: 1.4rem; color: #d4e6bc; margin-bottom: 12px; text-align: center; }
+        .move-grid { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+        .move-btn {
+            background: #334f33; border: none; color: #f2efd0;
+            padding: 10px; border-radius: 30px; box-shadow: 0 3px 0 #1a2a1a;
+            cursor: pointer; text-align: left; padding-left: 16px;
+        }
+        .special-actions { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+        .util-bar { display: flex; gap: 10px; margin-top: 12px; }
+        .util-btn {
+            background: #4f5e3a; border: none; color: #f2efd0; padding: 8px;
+            border-radius: 20px; flex: 1; cursor: pointer; box-shadow: 0 3px 0 #2a3420;
+        }
+        .log-box {
+            margin-top: 16px; background: #0e190e; padding: 12px 18px;
+            border-radius: 30px; color: #c6ddb2; border-left: 6px solid #b8863d;
+            box-shadow: inset 0 0 10px black; font-size: 0.95rem;
+        }
+        .modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center;
+        }
+        .modal-content {
+            background: #1e2e1e; border-radius: 30px; padding: 24px;
+            max-width: 500px; width: 90%; max-height: 70vh; overflow-y: auto;
+            color: #dfeccf; border: 2px solid #7e9f6e;
+        }
+        .close-btn {
+            background: #a76f1e; border: none; padding: 8px 20px; border-radius: 30px;
+            color: white; font-weight: bold; cursor: pointer; float: right;
+        }
+        .reset-btn {
+            background: #5f4a2e; border: none; color: #f0e6c0; padding: 6px 20px;
+            border-radius: 30px; cursor: pointer; box-shadow: 0 3px 0 #2f2214;
+        }
+    </style>
+</head>
+<body>
+<div class="game-container">
+    <div class="header">
+        <div class="time-box" id="timeDisplay">08:50</div>
+        <div class="date-box" id="dateDisplay">第1天 周一</div>
+        <div class="period-badge" id="periodDisplay">🎒 自由活动</div>
+        <div class="hunger-bar" id="hungerDisplay">🍖 饥饿: 100%</div>
+        <div class="pass-badge" id="passDisplay">🪪 通行证: 0</div>
+        <button class="reset-btn" id="restartBtn">🔁 重新调查</button>
+    </div>
+
+    <div class="main-row">
+        <div class="scene-panel">
+            <div class="scene-title" id="locationName">🏫 校门口</div>
+            <div class="scene-desc" id="locationDesc">赵佗学校，你的好友林晓曾在此就读。今天是你转学第一天，还没有正式上课。</div>
+            <div id="teacherQuestionBox" style="display: none;"></div>
+            <div><strong>📦 可观察的物品：</strong></div>
+            <div class="object-list" id="objectContainer"></div>
+        </div>
+
+        <div class="action-panel">
+            <div class="action-title">🚪 移动</div>
+            <div class="move-grid" id="moveButtons"></div>
+            <div class="action-title">⚡ 行动</div>
+            <div class="special-actions" id="specialActions"></div>
+            <div class="util-bar">
+                <button class="util-btn" id="backpackBtn">🎒 背包</button>
+                <button class="util-btn" id="clueBookBtn">📓 线索簿</button>
+                <button class="util-btn" id="scheduleBtn">📅 课程表</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="log-box" id="messageLog">🚪 开学典礼9:00前到达大礼堂。今天是周一，不上课，可自由调查。</div>
+
+    <!-- 模态框 -->
+    <div class="modal" id="backpackModal"><div class="modal-content"><button class="close-btn" id="closeBackpack">关闭</button><h3>🎒 背包</h3><div id="backpackList"></div></div></div>
+    <div class="modal" id="clueModal"><div class="modal-content"><button class="close-btn" id="closeClue">关闭</button><h3>📓 线索簿</h3><div id="clueList"></div></div></div>
+    <div class="modal" id="scheduleModal"><div class="modal-content"><button class="close-btn" id="closeSchedule">关闭</button><h3>📅 本周课程表</h3><div id="scheduleContent"></div></div></div>
+</div>
+
+<script>
+    (function(){
+        "use strict";
+
+        // ---------- 游戏状态 ----------
+        let gameActive = true, gameOver = false, gameWin = false;
+        let gameHours = 8, gameMinutes = 50;
+        let day = 1;                // 第几天 (1~7循环)
+        const weekdays = ['周一','周二','周三','周四','周五','周六','周日'];
+        const TIME_PER_MOVE = 5;
+
+        let passCount = 0;
+        let hunger = 100;           // 0-100
+        let backpack = [];
+        let clues = [];
+        let clueFlags = {};
+        let ceremonyDone = false;   // 是否已完成开学典礼剧情
+        let ceremonyTriggered = false; // 是否已触发校长讲话
+        let currentLocation = 'gate';
+        let inBed = false;
+
+        // 课表 (周一至周六，周日无课)
+        const FULL_SCHEDULE = {
+            1: [ // 周一 (开学第一天自由活动，但课表仍存在，实际不上课)
+                { id:'c1', startH:9,startM:10, endH:9,endM:40, name:'语文', room:'201', teacher:'张老师' },
+                { id:'c2', startH:10,startM:0, endH:10,endM:30, name:'物理', room:'实验室B', teacher:'李教授' }
+            ],
+            2: [ { id:'c1', startH:9,startM:10, endH:9,endM:40, name:'数学', room:'202', teacher:'陈老师' } ],
+            3: [ { id:'c1', startH:9,startM:10, endH:9,endM:40, name:'英语', room:'203', teacher:'刘老师' } ],
+            4: [ { id:'c1', startH:9,startM:10, endH:9,endM:40, name:'历史', room:'303', teacher:'王老师' } ],
+            5: [ { id:'c1', startH:9,startM:10, endH:9,endM:40, name:'化学', room:'实验室C', teacher:'周教授' } ],
+            6: [ // 周六上课
+                { id:'c1', startH:9,startM:10, endH:9,endM:40, name:'自习', room:'图书馆', teacher:null }
+            ],
+            0: [] // 周日
+        };
+
+        // 教师问答库 (简化)
+        const teacherQA = {
+            c1: { q:'“师者，所以传道受业解惑也”出自？', opts:['韩愈','柳宗元','欧阳修'], ans:0, given:false },
+            c2: { q:'牛顿第一定律又称？', opts:['惯性定律','加速度定律','反作用定律'], ans:0, given:false }
+        };
+
+        // 地点数据 (增加食堂)
+        const locations = {
+            gate: {
+                name:'🏫 校门口', desc:'保安亭里的大爷在打盹。',
+                objects: [{ id:'notice', name:'📄 公告栏', desc:'开学典礼9:00大礼堂。', observed:false, onObserve:()=>{ addClue('开学典礼9:00开始，在大礼堂举行。'); } }],
+                exits: ['hallway1']
+            },
+            hallway1: {
+                name:'📚 一楼走廊', desc:'长长的走廊。',
+                objects: [{ id:'board', name:'📌 公告板', desc:'被撕掉一半的值日表。', observed:false, onObserve:()=>{ addClue('林晓的名字出现在值日表上。'); } }],
+                exits: ['classroom201','auditorium','office','lockerArea','dormHall','cafeteria']
+            },
+            auditorium: { 
+                name:'🎓 大礼堂', 
+                desc:'开学典礼即将开始，学生们陆续入座。讲台上麦克风已经架好。',
+                objects: [
+                    { id:'stage', name:'🎤 讲台', desc:'校长一会儿会上台讲话。', observed:false },
+                    { id:'seat', name:'💺 座位', desc:'你找了个位置坐下，等待典礼开始。', observed:false, onObserve: triggerCeremonyIfReady }
+                ],
+                exits: ['hallway1'] 
+            },
+            classroom201: { name:'📖 201教室', desc:'语文课教室。', objects: [{ id:'desk', name:'📚 课桌', desc:'抽屉有纸条。', observed:false, onObserve:()=>{ addItem('纸条','仓库 晚8点'); addClue('有人约林晓在仓库见面。'); } }], exits: ['hallway1'] },
+            labB: { name:'🔬 实验室B', desc:'物理实验室。', objects: [{ id:'cabinet', name:'🗄️ 器材柜', observed:false, onObserve:()=>{ addItem('手电筒','照明'); } }], exits: ['hallway1','library'] },
+            classroom303: { name:'🌍 303教室', desc:'历史课教室。', objects: [], exits: ['hallway1'] },
+            library: { name:'📚 图书馆', desc:'书架林立。', objects: [{ id:'shelf', name:'📖 书架', observed:false, onObserve:()=>{ addClue('照片：林晓与某人合影。'); addItem('照片','合影'); } }], exits: ['labB','rooftop'] },
+            office: { name:'🚪 教导主任办公室', desc:'门虚掩。', objects: [{ id:'desk_o', name:'📁 办公桌', observed:false, onObserve:()=>{ addClue('处分记录：林晓被警告。'); } }], exits: ['hallway1'] },
+            lockerArea: { name:'🗄️ 储物柜区', desc:'317号是林晓的。', objects: [{ id:'locker317', name:'🔒 317号柜', observed:false, onObserve:()=>{ if(backpack.some(i=>i.id==='key')){ addClue('打开柜子，发现日记和SD卡。'); addItem('日记','林晓的日记'); addItem('SD卡','证据'); } else { setMessage('需要钥匙。'); } } }], exits: ['hallway1'] },
+            dormHall: { name:'🏢 宿舍楼大厅', desc:'宿管阿姨在看电视。', objects: [], exits: ['hallway1','dormRoom','friendsRoom'] },
+            dormRoom: { name:'🛏️ 你的寝室', desc:'四人寝。', objects: [{ id:'bed', name:'🛌 床铺', observed:false, onObserve:()=>{ if(!inBed) goToBed(); } }], exits: ['dormHall'] },
+            friendsRoom: { name:'🚪 林晓的寝室', desc:'308室。', objects: [{ id:'bed_f', name:'🛏️ 床', observed:false, onObserve:()=>{ addItem('钥匙','小钥匙'); addClue('枕头下发现钥匙。'); } }], exits: ['dormHall'] },
+            rooftop: { name:'🌆 天台', desc:'风很大。', objects: [{ id:'corner', name:'📦 角落', observed:false, onObserve:()=>{ if(clues.length>=5){ addClue('录音笔，林晓的录音。'); addItem('录音笔','证据'); } } }], exits: ['library'] },
+            cafeteria: { name:'🍽️ 食堂', desc:'提供三餐。', objects: [], exits: ['hallway1'] }
+        };
+
+        // 触发校长讲话 (开学典礼核心剧情)
+        function triggerCeremonyIfReady() {
+            if (!gameActive) return;
+            if (ceremonyDone) { setMessage('开学典礼已经结束了。'); return; }
+            const now = gameHours*60 + gameMinutes;
+            if (now >= 9*60 && currentLocation === 'auditorium' && !ceremonyTriggered) {
+                ceremonyTriggered = true;
+                // 显示校长讲话剧情
+                setMessage('🎤 校长走上讲台，开始冗长的讲话……你因为昨晚没睡好，眼皮越来越沉……');
+                // 描述更新
+                const loc = locations['auditorium'];
+                loc.desc = '校长正在台上讲话，声音单调乏味。你感到强烈的困意。';
+                // 禁用移动按钮？不，但可以允许玩家选择“睡觉”或“强撑”，我们简化：直接自动睡着
+                setTimeout(() => {
+                    if (gameActive && currentLocation === 'auditorium' && !ceremonyDone) {
+                        // 主角睡着，醒来在食堂，时间中午12:00
+                        ceremonyDone = true;
+                        gameHours = 12; gameMinutes = 0;
+                        currentLocation = 'cafeteria';
+                        setMessage('😴 你实在撑不住，趴在座位上睡着了……醒来时发现典礼已经结束，你躺在食堂的椅子上，周围是吃午饭的学生。');
+                        locations['auditorium'].desc = '开学典礼已经结束，礼堂空荡荡的。';
+                        updateUI();
+                        updatePeriodDisplay();
+                        renderScene();
+                    }
+                }, 1500);
+                renderScene();
+            } else if (currentLocation === 'auditorium' && !ceremonyDone && now < 9*60) {
+                setMessage('开学典礼还没开始，再等等吧。');
+            }
+        }
+
+        // 辅助函数
+        function formatTime(h,m){ return `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}`; }
+        function setMessage(msg){ document.getElementById('messageLog').innerText = msg; }
+        function updateUI(){
+            document.getElementById('timeDisplay').innerText = formatTime(gameHours, gameMinutes);
+            document.getElementById('dateDisplay').innerText = `第${day}天 ${weekdays[(day-1)%7]}`;
+            document.getElementById('passDisplay').innerText = `🪪 通行证: ${passCount}`;
+            document.getElementById('hungerDisplay').innerText = `🍖 饥饿: ${hunger}%`;
+        }
+        function addClue(text){ if(!clues.includes(text)) { clues.push(text); } }
+        function addItem(id, name, desc=''){ if(!backpack.find(i=>i.id===id)) backpack.push({id,name,desc}); }
+
+        // 饥饿值消耗 (随时间/行动)
+        function consumeHunger(amount=2){
+            hunger = Math.max(0, hunger - amount);
+            if(hunger <= 0) { punish('饥饿过度晕倒'); }
+        }
+
+        // 惩罚
+        function punish(reason){
+            if(passCount>0){ passCount--; setMessage(`🛡️ 使用通行证免于${reason}。`); updateUI(); }
+            else { gameActive=false; gameOver=true; setMessage(`💀 ${reason}，游戏结束。`); renderScene(); }
+        }
+
+        // 检查时间规则
+        function timeCheck(){
+            if(!gameActive) return;
+            const now = gameHours*60+gameMinutes;
+            const weekday = (day-1)%7;
+            // 上课检查 (周一自由活动，周日休息)
+            if(day !== 1 && weekday !== 6) { // 不是周一且不是周日
+                const cls = getCurrentClass();
+                if(cls){
+                    let expected = '';
+                    if(cls.room==='201') expected='classroom201';
+                    else if(cls.room==='实验室B') expected='labB';
+                    else if(cls.room==='303') expected='classroom303';
+                    if(currentLocation !== expected && Math.random()<0.25){
+                        punish('上课时间游荡被教导主任抓住');
+                    }
+                }
+            }
+            // 宿舍宵禁
+            const hour = gameHours;
+            if((hour >= 21 || hour < 7) && !['dormHall','dormRoom','friendsRoom'].includes(currentLocation)){
+                punish('宵禁时间在外游荡');
+            }
+            if(hour >= 22 && currentLocation==='dormRoom' && !inBed){
+                punish('22:00后未上床');
+            }
+            // 饥饿惩罚
+            if(hunger <= 0) punish('饥饿过度');
+        }
+
+        function advanceTime(mins){
+            let total = gameHours*60 + gameMinutes + mins;
+            if(total >= 24*60) { total -= 24*60; day++; if(day>7) day=1; }
+            gameHours = Math.floor(total/60);
+            gameMinutes = total%60;
+            consumeHunger(mins * 0.5);
+            updateUI();
+            updatePeriodDisplay();
+            timeCheck();
+            if(gameActive) checkWin();
+            renderScene();
+        }
+
+        function getCurrentClass(){
+            const weekday = (day-1)%7;
+            if(day===1 || weekday===6) return null; // 周一自由，周日休息
+            const schedule = FULL_SCHEDULE[weekday] || [];
+            const now = gameHours*60+gameMinutes;
+            return schedule.find(c => now >= c.startH*60+c.startM && now < c.endH*60+c.endM);
+        }
+
+        function updatePeriodDisplay(){
+            const cls = getCurrentClass();
+            const el = document.getElementById('periodDisplay');
+            if(day===1) el.innerText = '🎒 开学日 · 自由活动';
+            else if((day-1)%7===6) el.innerText = '🌞 周日 · 休息';
+            else el.innerText = cls ? `📚 ${cls.name} · ${cls.room}` : `🎒 课间`;
+        }
+
+        function goToBed(){
+            if(currentLocation !== 'dormRoom') return;
+            inBed = true;
+            setMessage('你上床睡觉了……');
+            // 快进到7:00
+            let total = gameHours*60+gameMinutes;
+            if(total >= 22*60 || total < 7*60){
+                gameHours = 7; gameMinutes = 0;
+                day++; if(day>7) day=1;
+            }
+            inBed = false;
+            setMessage('新的一天。');
+            updateUI(); updatePeriodDisplay(); renderScene();
+        }
+
+        function moveTo(locId){
+            if(!gameActive) return;
+            if(!locations[locId]) return;
+            currentLocation = locId;
+            inBed = false;
+            advanceTime(TIME_PER_MOVE);
+        }
+
+        function observeObject(obj){
+            if(!gameActive) return;
+            if(obj.observed) { setMessage('已经观察过了。'); return; }
+            obj.observed = true;
+            setMessage(`观察：${obj.desc}`);
+            if(obj.onObserve) obj.onObserve();
+            renderScene();
+        }
+
+        // 食堂用餐
+        function eatMeal(mealType){
+            const hour = gameHours;
+            let valid = false;
+            if(mealType==='breakfast' && hour>=7 && hour<9) valid=true;
+            else if(mealType==='lunch' && hour>=11.5 && hour<13.5) valid=true;
+            else if(mealType==='dinner' && hour>=17.5 && hour<19.5) valid=true;
+            if(!valid) { setMessage('现在不是用餐时间。'); return; }
+            hunger = Math.min(100, hunger + 40);
+            setMessage(`你吃了${mealType==='breakfast'?'早餐':mealType==='lunch'?'午餐':'晚餐'}，饥饿值恢复。`);
+            updateUI();
+        }
+
+        function renderScene(){
+            const loc = locations[currentLocation];
+            document.getElementById('locationName').innerText = loc.name;
+            let desc = loc.desc;
+            const cls = getCurrentClass();
+            if(cls && day!==1 && (day-1)%7!==6){
+                if((cls.room==='201'&&currentLocation==='classroom201')||(cls.room==='实验室B'&&currentLocation==='labB'))
+                    desc += `<br><span style="color:#b8d9a3;">📖 正在上课，${cls.teacher}在讲台上。</span>`;
+                else if(cls) desc += `<br><span style="color:#e09f7e;">⚠️ 上课时间，你却在${loc.name}，小心主任。</span>`;
+            }
+            document.getElementById('locationDesc').innerHTML = desc;
+
+            const objDiv = document.getElementById('objectContainer');
+            objDiv.innerHTML = '';
+            loc.objects.forEach(obj => {
+                const btn = document.createElement('button');
+                btn.className = 'obj-btn';
+                btn.innerText = obj.name;
+                if(obj.observed) btn.disabled = true;
+                btn.addEventListener('click', ()=>observeObject(obj));
+                objDiv.appendChild(btn);
+            });
+
+            const moveDiv = document.getElementById('moveButtons');
+            moveDiv.innerHTML = '';
+            loc.exits.forEach(exitId => {
+                const btn = document.createElement('button');
+                btn.className = 'move-btn';
+                btn.innerText = `🚶 前往 ${locations[exitId].name}`;
+                btn.addEventListener('click', ()=>moveTo(exitId));
+                moveDiv.appendChild(btn);
+            });
+
+            const specialDiv = document.getElementById('specialActions');
+            specialDiv.innerHTML = '';
+            // 食堂用餐
+            if(currentLocation==='cafeteria'){
+                const b1 = document.createElement('button'); b1.className='move-btn'; b1.innerText='🍳 吃早餐 (7:00-9:00)'; b1.addEventListener('click',()=>eatMeal('breakfast')); specialDiv.appendChild(b1);
+                const b2 = document.createElement('button'); b2.className='move-btn'; b2.innerText='🍱 吃午餐 (11:30-13:00)'; b2.addEventListener('click',()=>eatMeal('lunch')); specialDiv.appendChild(b2);
+                const b3 = document.createElement('button'); b3.className='move-btn'; b3.innerText='🍲 吃晚餐 (17:30-19:00)'; b3.addEventListener('click',()=>eatMeal('dinner')); specialDiv.appendChild(b3);
+            }
+            // 在大礼堂且未完成典礼时，可以选择“坐下听讲”来触发
+            if(currentLocation==='auditorium' && !ceremonyDone && !ceremonyTriggered){
+                const btn = document.createElement('button'); btn.className='move-btn'; btn.innerText='🪑 找个座位坐下'; btn.addEventListener('click',()=>{
+                    const seatObj = locations.auditorium.objects.find(o=>o.id==='seat');
+                    if(seatObj) observeObject(seatObj);
+                }); specialDiv.appendChild(btn);
+            }
+            if(currentLocation==='dormRoom' && !inBed){
+                const btn = document.createElement('button'); btn.className='move-btn'; btn.innerText='🛌 上床睡觉'; btn.addEventListener('click',goToBed); specialDiv.appendChild(btn);
+            }
+            // 回答问题（简化）
+            if(currentLocation==='classroom201' && getCurrentClass()?.id==='c1' && !teacherQA.c1.given){
+                const btn = document.createElement('button'); btn.className='move-btn'; btn.innerText='📝 听课回答问题'; btn.addEventListener('click',()=>{
+                    const ans = prompt(teacherQA.c1.q+'\n1.韩愈 2.柳宗元 3.欧阳修');
+                    if(parseInt(ans)===1){ passCount++; setMessage('✅ 回答正确！获得通行证。'); teacherQA.c1.given=true; }
+                    else setMessage('❌ 回答错误。');
+                    advanceTime(2); updateUI();
+                }); specialDiv.appendChild(btn);
+            }
+            const waitBtn = document.createElement('button'); waitBtn.className='move-btn'; waitBtn.innerText='⏳ 等待5分钟'; waitBtn.addEventListener('click',()=>advanceTime(5)); specialDiv.appendChild(waitBtn);
+        }
+
+        function checkWin(){ if(clues.length>=7) { gameActive=false; gameWin=true; setMessage('🏆 真相大白！'); } }
+
+        function updateBackpackUI(){ document.getElementById('backpackList').innerHTML = backpack.map(i=>`<p><b>${i.name}</b>: ${i.desc}</p>`).join('')||'空空如也'; }
+        function updateClueUI(){ document.getElementById('clueList').innerHTML = clues.map(c=>`<p>🔍 ${c}</p>`).join('')||'暂无线索'; }
+        function showSchedule(){
+            let html = '';
+            for(let d=1; d<=7; d++){
+                const wd = weekdays[(d-1)%7];
+                const sched = FULL_SCHEDULE[d] || [];
+                html += `<p><b>第${d}天 ${wd}</b> ${d===1?'自由活动':(d===7?'休息':sched.map(c=>`${c.startH}:${c.startM.toString().padStart(2,'0')} ${c.name}`).join('，'))}</p>`;
+            }
+            document.getElementById('scheduleContent').innerHTML = html;
+            document.getElementById('scheduleModal').style.display='flex';
+        }
+
+        function reset(){
+            gameActive=true; gameOver=false; gameWin=false;
+            gameHours=8; gameMinutes=50; day=1; hunger=100; passCount=0; backpack=[]; clues=[]; ceremonyDone=false; ceremonyTriggered=false; inBed=false;
+            for(let k in teacherQA) teacherQA[k].given=false;
+            Object.values(locations).forEach(loc=>loc.objects.forEach(o=>o.observed=false));
+            locations.auditorium.desc = '开学典礼即将开始，学生们陆续入座。讲台上麦克风已经架好。';
+            currentLocation='gate';
+            updateUI(); updatePeriodDisplay();
+            setMessage('🚪 开学典礼9:00前到达大礼堂。今天是周一，不上课。');
+            renderScene();
+        }
+
+        function init(){
+            reset();
+            document.getElementById('restartBtn').addEventListener('click',reset);
+            document.getElementById('backpackBtn').addEventListener('click',()=>{ updateBackpackUI(); document.getElementById('backpackModal').style.display='flex'; });
+            document.getElementById('clueBookBtn').addEventListener('click',()=>{ updateClueUI(); document.getElementById('clueModal').style.display='flex'; });
+            document.getElementById('scheduleBtn').addEventListener('click',showSchedule);
+            document.getElementById('closeBackpack').addEventListener('click',()=>document.getElementById('backpackModal').style.display='none');
+            document.getElementById('closeClue').addEventListener('click',()=>document.getElementById('clueModal').style.display='none');
+            document.getElementById('closeSchedule').addEventListener('click',()=>document.getElementById('scheduleModal').style.display='none');
+            window.addEventListener('click',(e)=> { if(e.target.classList.contains('modal')) e.target.style.display='none'; });
+        }
+        init();
+    })();
+</script>
+</body>
+</html>
